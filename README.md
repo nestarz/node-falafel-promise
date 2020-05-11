@@ -1,4 +1,4 @@
-# falafel-promisee
+# falafel-promise
 
 Transform the [ast](http://en.wikipedia.org/wiki/Abstract_syntax_tree) on a
 recursive walk.
