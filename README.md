@@ -17,15 +17,15 @@ source code.
 Put a function wrapper around all array literals.
 
 ``` js
-var falafel = require('falafel');
+import falafel from "falafel-promise"
 
-var src = '(' + function () {
-    var xs = [ 1, 2, [ 3, 4 ] ];
-    var ys = [ 5, 6 ];
+const src = '(' + function () {
+    const xs = [ 1, 2, [ 3, 4 ] ];
+    const ys = [ 5, 6 ];
     console.dir([ xs, ys ]);
 } + ')()';
 
-var output = falafel(src, function (node) {
+const output = await falafel(src, async function (node) {
     if (node.type === 'ArrayExpression') {
         node.update('fn(' + node.source() + ')');
     }
@@ -37,8 +37,8 @@ output:
 
 ```
 (function () {
-    var xs = fn([ 1, 2, fn([ 3, 4 ]) ]);
-    var ys = fn([ 5, 6 ]);
+    const xs = fn([ 1, 2, fn([ 3, 4 ]) ]);
+    const ys = fn([ 5, 6 ]);
     console.dir(fn([ xs, ys ]));
 })()
 ```
@@ -75,7 +75,7 @@ You may pass in an instance of acorn to the opts as `opts.parser` to use that
 version instead of the version of acorn packaged with this library.
 
 ```js
-var acorn = require('acorn-jsx');
+import acorn from "acorn-jsx"
 
 falafel(src, {parser: acorn, plugins: { jsx: true }}, function(node) {
   // this will parse jsx
