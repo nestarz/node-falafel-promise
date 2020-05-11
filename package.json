@@ -1,12 +1,13 @@
 {
-  "name": "falafel",
+  "name": "falafel-promise",
   "description": "transform the ast on a recursive walk",
-  "version": "2.2.4",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/substack/node-falafel.git"
   },
   "main": "index.js",
+  "type": "module",
   "keywords": [
     "ast",
     "burrito",
@@ -24,10 +25,7 @@
     "test": "node --harmony test/bin/run.js test/*.js"
   },
   "dependencies": {
-    "acorn": "^7.1.1",
-    "foreach": "^2.0.5",
-    "isarray": "^2.0.1",
-    "object-keys": "^1.0.6"
+    "acorn": "^7.1.1"
   },
   "devDependencies": {
     "acorn-jsx": "^5.2.0",
@@ -38,13 +36,12 @@
     "tape": "^4.0.0"
   },
   "engines": {
-    "node": ">=0.4.0"
+    "node": ">=14.0.0"
   },
   "license": "MIT",
   "author": {
-    "email": "mail@substack.net",
-    "name": "James Halliday",
-    "url": "http://substack.net"
+    "name": "Elias Rhouzlane",
+    "url": "https://eliasrhouzlane.com"
   },
   "testling": {
     "browsers": {

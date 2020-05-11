@@ -1,83 +1,56 @@
-var acorn = require('acorn');
-var isArray = require('isarray');
-var objectKeys = require('object-keys');
-var forEach = require('foreach');
-var util = require('util');
+import acorn from "acorn";
 
-module.exports = function (src, opts, fn) {
-    if (typeof opts === 'function') {
-        fn = opts;
-        opts = {};
-    }
-    if (src && typeof src === 'object' && src.constructor.name === 'Buffer') {
-        src = src.toString();
-    }
-    else if (src && typeof src === 'object') {
-        opts = src;
-        src = opts.source;
-        delete opts.source;
-    }
-    src = src === undefined ? opts.source : src;
-    if (typeof src !== 'string') src = String(src);
-    var parser = opts.parser || acorn;
-    var ast = parser.parse(src, opts);
-    
-    var result = {
-        chunks : src.split(''),
-        toString : function () { return result.chunks.join('') },
-        inspect : function () { return result.toString() }
-    };
-    if (util.inspect.custom) {
-        result[util.inspect.custom] = result.toString;
-    }
-    var index = 0;
-    
-    (function walk (node, parent) {
-        insertHelpers(node, parent, result.chunks);
-        
-        forEach(objectKeys(node), function (key) {
-            if (key === 'parent') return;
-            
-            var child = node[key];
-            if (isArray(child)) {
-                forEach(child, function (c) {
-                    if (c && typeof c.type === 'string') {
-                        walk(c, node);
-                    }
-                });
+export default async function (src, optionsOrCallback, callback = null) {
+  const sourceString = String(src.toString());
+
+  return typeof optionsOrCallback === "function"
+    ? await falafel(sourceString, optionsOrCallback)
+    : await falafel(sourceString, callback, optionsOrCallback);
+}
+
+async function falafel(src, callback, { parser = acorn, ...options } = {}) {
+  const ast = parser.parse(src, options);
+  const chunks = await walk({ node: ast, chunks: src.split(""), callback });
+  const joinChunks = () => chunks.join("");
+  return {
+    chunks,
+    toString: joinChunks,
+    inspect: joinChunks,
+  };
+}
+
+async function walk({ node, parent, chunks, callback = () => null } = {}) {
+  await Promise.all(
+    Object.keys(node)
+      .filter((key) => node[key] && key !== "parent")
+      .map(async function (key) {
+        const childs = node[key]
+          ? Array.isArray(node[key])
+            ? node[key]
+            : [node[key]]
+          : [];
+
+        await Promise.all(
+          childs.map(async (child) => {
+            if (typeof child.type === "string") {
+              await walk({ node: child, parent: node, chunks, callback });
             }
-            else if (child && typeof child.type === 'string') {
-                walk(child, node);
-            }
-        });
-        fn(node);
-    })(ast, undefined);
-    
-    return result;
-};
- 
-function insertHelpers (node, parent, chunks) {
-    node.parent = parent;
-    
-    node.source = function () {
-        return chunks.slice(node.start, node.end).join('');
-    };
-    
-    if (node.update && typeof node.update === 'object') {
-        var prev = node.update;
-        forEach(objectKeys(prev), function (key) {
-            update[key] = prev[key];
-        });
-        node.update = update;
-    }
-    else {
-        node.update = update;
-    }
-    
-    function update (s) {
-        chunks[node.start] = s;
-        for (var i = node.start + 1; i < node.end; i++) {
-            chunks[i] = '';
-        }
-    }
+          })
+        );
+      })
+  );
+
+  await callback({
+    ...node,
+    parent,
+    source: () => chunks.slice(node.start, node.end).join(""),
+    update: (string) => {
+      chunks[node.start] = string;
+      for (let i = node.start + 1; i < node.end; i++) {
+        chunks[i] = "";
+      }
+    },
+  });
+
+  return chunks;
 }
